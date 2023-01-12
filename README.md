@@ -36,7 +36,7 @@ const awareness = new awarenessProtocol.Awareness()
 ```
 
 <dl>
-  <b><code>clientID:number</code></b>
+  <b><code>clientID:string</code></b>
   <dd>A unique identifier that identifies this client.</dd>
   <b><code>getLocalState():Object&lt;string,any&gt;|null</code></b>
   <dd>Get the local awareness state.</dd>

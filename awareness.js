@@ -44,16 +44,16 @@ export class Awareness extends Observable {
     super()
     this.doc = doc
     /**
-     * @type {number}
+     * @type {string}
      */
     this.clientID = doc.clientID
     /**
      * Maps from client id to client state
-     * @type {Map<number, Object<string, any>>}
+     * @type {Map<string, Object<string, any>>}
      */
     this.states = new Map()
     /**
-     * @type {Map<number, MetaClientState>}
+     * @type {Map<string, MetaClientState>}
      */
     this.meta = new Map()
     this._checkInterval = /** @type {any} */ (setInterval(() => {
@@ -63,7 +63,7 @@ export class Awareness extends Observable {
         this.setLocalState(this.getLocalState())
       }
       /**
-       * @type {Array<number>}
+       * @type {Array<string>}
        */
       const remove = []
       this.meta.forEach((meta, clientid) => {
@@ -149,7 +149,7 @@ export class Awareness extends Observable {
   }
 
   /**
-   * @return {Map<number,Object<string,any>>}
+   * @return {Map<string,Object<string,any>>}
    */
   getStates () {
     return this.states
@@ -161,7 +161,7 @@ export class Awareness extends Observable {
  * This change will be propagated to remote clients.
  *
  * @param {Awareness} awareness
- * @param {Array<number>} clients
+ * @param {Array<string>} clients
  * @param {any} origin
  */
 export const removeAwarenessStates = (awareness, clients, origin) => {
@@ -188,7 +188,7 @@ export const removeAwarenessStates = (awareness, clients, origin) => {
 
 /**
  * @param {Awareness} awareness
- * @param {Array<number>} clients
+ * @param {Array<string>} clients
  * @return {Uint8Array}
  */
 export const encodeAwarenessUpdate = (awareness, clients, states = awareness.states) => {
@@ -199,7 +199,7 @@ export const encodeAwarenessUpdate = (awareness, clients, states = awareness.sta
     const clientID = clients[i]
     const state = states.get(clientID) || null
     const clock = /** @type {MetaClientState} */ (awareness.meta.get(clientID)).clock
-    encoding.writeVarUint(encoder, clientID)
+    encoding.writeVarString(encoder, clientID)
     encoding.writeVarUint(encoder, clock)
     encoding.writeVarString(encoder, JSON.stringify(state))
   }
@@ -222,11 +222,11 @@ export const modifyAwarenessUpdate = (update, modify) => {
   const len = decoding.readVarUint(decoder)
   encoding.writeVarUint(encoder, len)
   for (let i = 0; i < len; i++) {
-    const clientID = decoding.readVarUint(decoder)
+    const clientID = decoding.readVarString(decoder)
     const clock = decoding.readVarUint(decoder)
     const state = JSON.parse(decoding.readVarString(decoder))
     const modifiedState = modify(state)
-    encoding.writeVarUint(encoder, clientID)
+    encoding.writeVarString(encoder, clientID)
     encoding.writeVarUint(encoder, clock)
     encoding.writeVarString(encoder, JSON.stringify(modifiedState))
   }
@@ -247,7 +247,7 @@ export const applyAwarenessUpdate = (awareness, update, origin) => {
   const removed = []
   const len = decoding.readVarUint(decoder)
   for (let i = 0; i < len; i++) {
-    const clientID = decoding.readVarUint(decoder)
+    const clientID = decoding.readVarString(decoder)
     let clock = decoding.readVarUint(decoder)
     const state = JSON.parse(decoding.readVarString(decoder))
     const clientMeta = awareness.meta.get(clientID)
